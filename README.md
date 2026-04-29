@@ -1,147 +1,119 @@
 # Scalar–Tensor Cosmology with Time-Scaling Modification
 
-This repository contains the code used in the analysis presented in:
+This repository contains the analysis code for:
 
-**"Scalar–Tensor Cosmology with Time-Scaling Modification: Observational Constraints from H(z) and Pantheon+"**  
-Josip Zenčić (2026)
+**Scalar–Tensor Cosmology with Time-Scaling Modification: Observational Constraints from H(z) and Pantheon+**  
+Josip Zenčić, 2026
 
----
+## Overview
 
-## 🔬 Overview
+This project explores a minimal phenomenological extension of ΛCDM cosmology based on a redshift-dependent time-scaling modification motivated by scalar-field dynamics.
 
-This project explores a minimal extension of ΛCDM cosmology based on a time-scaling modification motivated by scalar-field dynamics.
+The model introduces:
 
-The model introduces a redshift-dependent factor:
-
-T(z) = 1 + C * z / (1 + z)
+```text
+T(z) = 1 + C z / (1 + z)
 
 which modifies the expansion rate:
 
-H(z) = H_LCDM(z) * T(z)
+H(z) = H_LCDM(z) · T(z)
+Data Used
 
-The goal is to test whether such a minimal dynamical correction can improve agreement with observational data.
+The analysis uses:
 
----
+Cosmic chronometer H(z) measurements
+Pantheon+ Type Ia supernova sample, N = 1701
+Full Pantheon+ covariance matrix
 
-## 📊 Data Used
+Pantheon+ data source:
+https://github.com/PantheonPlusSH0ES/DataRelease
 
-The analysis includes:
+Methodology
 
-- **Cosmic chronometer H(z) data**
-- **Pantheon+ Type Ia supernova sample (N = 1701)**
-- Full covariance matrix for supernova data
+The model is tested through a joint chi-square fit:
 
-Data sources:
-- Pantheon+: https://github.com/PantheonPlusSH0ES/DataRelease
+χ² = χ²_H(z) + χ²_SN
 
----
+Fitted parameters:
 
-## ⚙️ Methodology
+H₀ — Hubble constant
+C — time-scaling parameter
+M — supernova magnitude offset
 
-- Joint χ² minimization:
-  
-  χ² = χ²_H(z) + χ²_SN
+Optimization is performed using scipy.optimize.minimize.
 
-- Parameters fitted:
-  - H₀ (Hubble constant)
-  - C (time-scaling parameter)
-  - M (supernova magnitude offset)
+Key Results
 
-- Optimization:
-  - SciPy `minimize` (Nelder-Mead)
+ΛCDM:
 
----
+χ² ≈ 1778.14
+AIC ≈ 1782.14
 
-## 📈 Key Results
+Minimal Ψ/time model:
 
-- ΛCDM:
-  - χ² ≈ 1778.14
+χ² ≈ 1765.47
+AIC ≈ 1771.47
 
-- Minimal model:
-  - χ² ≈ 1765.47
+Improvement:
 
-- Improvement:
-  - Δχ² ≈ -12.67
-  - ΔAIC ≈ -10.67
+Δχ² ≈ -12.67
+ΔAIC ≈ -10.67
 
-➡️ The minimal model is statistically preferred over ΛCDM under current data.
+The improvement is driven primarily by the Pantheon+ supernova sector, while the model remains comparable to ΛCDM for H(z) data.
 
----
+Effective Cosmology
 
-## 📌 Interpretation
+The reconstructed expansion history gives approximately:
 
-- The improvement is driven primarily by the supernova dataset.
-- The model remains consistent with H(z) constraints.
-- Best-fit value:
-  
-  C ≈ 0.12
-
-This suggests a stronger effective modification of the expansion rate at higher redshift.
-
----
-
-## 🌌 Effective Cosmology
-
-From the reconstructed expansion history:
-
-- w₀ ≈ -0.88  
-- Transition redshift: z ≈ 0.55  
+w₀ ≈ -0.88
+w(z=1) ≈ -0.60
+q₀ ≈ -0.42
+z(q=0) ≈ 0.55
 
 These values are consistent with a late-time accelerating universe.
 
----
+Stability
 
-## 🧪 Stability
+The best-fit solution was tested across multiple initial conditions and converges to a stable minimum:
 
-The solution is highly stable across different initial conditions:
-
+C ≈ 0.12146
 σ_C ~ 10⁻⁶
+Limitations
 
-This indicates a well-defined global minimum.
+This is a preliminary observational test. Current limitations include:
 
----
-
-## ⚠️ Limitations
-
-- No MCMC or posterior analysis yet
-- No BAO or CMB constraints included
-- Phenomenological parametrization
-
-Results should be considered **preliminary**.
-
----
-
-## ▶️ How to Run
+No MCMC or posterior analysis yet
+No BAO or CMB constraints included
+Phenomenological parametrization
+Further validation required
+How to Run
 
 Install dependencies:
 
-```bash
 pip install numpy pandas scipy matplotlib
 
+Run the analysis:
 
-
-
-Run:
-
-python psi_time_model_fit_v2.py
-📁 Files
-psi_time_model_fit_v2.py – main analysis script
-📜 License
-
-This project is provided for research and educational purposes.
-
-🔗 Related Work
+python code/psi_time_model_fit_v2.py
+Repository Structure
+psi-time-cosmology/
+├── README.md
+└── code/
+    └── psi_time_model_fit_v2.py
+Related Work
 
 Zenodo record:
+https://zenodo.org/records/19672877
 
-👉 https://zenodo.org/records/19672877
+Citation
 
-👤 Author
+If you use this code or results, please cite the Zenodo record above.
+
+Author
 
 Josip Zenčić
 Makarska, Croatia
 
-💡 Note
+Note
 
-This work represents an ongoing research direction.
-Further validation with additional datasets (BAO, CMB) and full statistical analysis is planned.
+This work is part of an ongoing research direction. Future versions should include BAO/CMB constraints, uncertainty estimates, and full posterior exploration.
