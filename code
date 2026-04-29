@@ -1,0 +1,84 @@
+# psi_time_model_fit_v2.py
+
+import numpy as np
+import pandas as pd
+from scipy.optimize import minimize
+from scipy.integrate import cumulative_trapezoid
+from scipy.linalg import cho_factor, cho_solve
+import urllib.request, gzip
+
+# =========================
+# H(z) DATA
+# =========================
+z_h = np.array([...])  # ostavi kako imaš
+H_obs = np.array([...])
+H_err = np.array([...])
+
+# =========================
+# PANTHEON+
+# =========================
+data_url = "https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/Pantheon%2B_Data/4_DISTANCES_AND_COVAR/Pantheon%2BSH0ES.dat"
+cov_url  = "https://raw.githubusercontent.com/PantheonPlusSH0ES/DataRelease/main/Pantheon%2B_Data/4_DISTANCES_AND_COVAR/Pantheon%2BSH0ES_STAT%2BSYS.cov"
+
+df = pd.read_csv(data_url, sep=r"\s+", comment="#")
+mask = np.isfinite(df["zHD"]) & np.isfinite(df["MU_SH0ES"]) & (df["zHD"] > 0)
+
+z_sn = df["zHD"].values[mask]
+mu_obs = df["MU_SH0ES"].values[mask]
+
+def load_covariance(url, n):
+    raw = urllib.request.urlopen(url).read()
+    if raw[:2] == b"\x1f\x8b":
+        raw = gzip.decompress(raw)
+    vals = np.fromstring(raw.decode(), sep=" ")
+    return vals[1:].reshape((n,n)) if int(vals[0]) == n else vals.reshape((n,n))
+
+cov_all = load_covariance(cov_url, len(df))
+cov = cov_all[np.ix_(mask, mask)] + np.eye(len(z_sn))*1e-12
+cf = cho_factor(cov)
+
+def chi2_cov(delta):
+    return float(delta @ cho_solve(cf, delta))
+
+# =========================
+# MODELS
+# =========================
+Omega_m, Omega_L = 0.3, 0.7
+c = 299792.458
+
+def H_LCDM(z, H0):
+    return H0 * np.sqrt(Omega_m*(1+z)**3 + Omega_L)
+
+def T(z, C):
+    return 1 + C*z/(1+z)
+
+def H_model(z, H0, C):
+    return H_LCDM(z, H0) * T(z, C)
+
+def mu_model(z, H0, C=None, M=0):
+    z_grid = np.linspace(0, max(z), 4000)
+    H = H_LCDM(z_grid, H0) if C is None else H_model(z_grid, H0, C)
+    dL = (1+z) * np.interp(z, z_grid,
+         cumulative_trapezoid(c/H, z_grid, initial=0))
+    return 5*np.log10(dL) + 25 + M
+
+# =========================
+# FIT
+# =========================
+def chi2_LCDM(p):
+    H0, M = p
+    chi_H = np.sum(((H_obs - H_LCDM(z_h, H0))/H_err)**2)
+    chi_SN = chi2_cov(mu_obs - mu_model(z_sn, H0, None, M))
+    return chi_H + chi_SN
+
+def chi2_model(p):
+    H0, C, M = p
+    chi_H = np.sum(((H_obs - H_model(z_h, H0, C))/H_err)**2)
+    chi_SN = chi2_cov(mu_obs - mu_model(z_sn, H0, C, M))
+    return chi_H + chi_SN
+
+res_LCDM = minimize(chi2_LCDM, [69, -0.1])
+res_model = minimize(chi2_model, [69, 0.02, -0.1])
+
+print("LCDM χ²:", res_LCDM.fun)
+print("Model χ²:", res_model.fun)
